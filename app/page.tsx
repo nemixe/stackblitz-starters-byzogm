@@ -1,12 +1,7 @@
 "use client";
 
-/**
- * v0 by Vercel.
- * @see https://v0.dev/t/K5HRJv54ZsV
- * Documentation: https://v0.dev/docs#integrating-generated-code-into-your-nextjs-app
- */
 import { Button } from "@/components/ui/button";
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 
 type Product = {
   id: number;
@@ -30,27 +25,15 @@ const PRODUCTS: Product[] = [
 
 export default function Page() {
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [quantities, setQuantities] = useState<{
-    [id: string]: number | undefined;
-  }>({});
 
   const removeFromCart = (product: Product) => {
     setCart(cart.filter((p) => p.id !== product.id));
   };
 
-  useEffect(() => {
-    setQuantities(
-      cart.reduce(
-        (acc, product) => ({ ...acc, [product.id]: product.quantity }),
-        {},
-      ),
-    );
-  }, [cart]);
-
   const totalPrice = cart
     .reduce(
-      (total, product) => total + product.price * (quantities[product.id] || 1),
-      0,
+      (total, product) => total + product.price * product.quantity,
+      0
     )
     .toFixed(2);
 
@@ -60,7 +43,7 @@ export default function Page() {
         <Card
           key={product.id}
           {...product}
-          isAddedToCart={cart.findIndex((p) => p.id === product.id) >= 0}
+          isAddedToCart={cart.some((p) => p.id === product.id)}
           onAddToCart={(data) => setCart([...cart, data])}
         />
       ))}
@@ -94,8 +77,7 @@ export default function Page() {
             </div>
             <div className="mt-4 flex items-center justify-between">
               <p className="font-semibold">Total:</p>
-              <p className="text-primary font-bold">${totalPrice}</p>{" "}
-              {/* Bad practice: expensive calculation in render */}
+              <p className="text-primary font-bold">${totalPrice}</p>
             </div>
             <Button size="sm" className="w-full mt-4">
               Checkout
@@ -118,7 +100,6 @@ type CardProps = {
 const Card = (props: CardProps) => {
   const [quantity, setQuantity] = useState(1);
 
-  // Bad practice: Logic repeated in event handlers
   const handleAddToCart = () => {
     props.onAddToCart({ ...props, quantity });
   };
@@ -159,7 +140,7 @@ const Card = (props: CardProps) => {
           <Button
             size="sm"
             disabled={props.isAddedToCart}
-            onClick={handleAddToCart} // Repeated logic
+            onClick={handleAddToCart}
           >
             Add to Cart
           </Button>
@@ -167,7 +148,7 @@ const Card = (props: CardProps) => {
       </div>
     </div>
   );
-};
+}
 
 // Icon components remain unchanged
 function MinusIcon(props: React.SVGProps<SVGSVGElement>) {
