@@ -6,7 +6,7 @@
  * Documentation: https://v0.dev/docs#integrating-generated-code-into-your-nextjs-app
  */
 import { Button } from "@/components/ui/button";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 type Product = {
   id: number;
@@ -36,23 +36,31 @@ export default function Page() {
 
   const removeFromCart = (product: Product) => {
     setCart(cart.filter((p) => p.id !== product.id));
-  };
-
-  useEffect(() => {
     setQuantities(
       cart.reduce(
         (acc, product) => ({ ...acc, [product.id]: product.quantity }),
-        {},
-      ),
+        {}
+      )
     );
-  }, [cart]);
+  };
 
-  const totalPrice = cart
-    .reduce(
-      (total, product) => total + product.price * (quantities[product.id] || 1),
-      0,
-    )
-    .toFixed(2);
+  // Yes im aware it might be bad practice since quantities is object
+  const totalPrice = useMemo(
+    () =>
+      cart
+        .reduce(
+          (total, product) =>
+            total + product.price * (quantities[product.id] || 1),
+          0
+        )
+        .toFixed(2),
+    [cart, quantities]
+  );
+
+  const getTotalProductPrice = useCallback(
+    (product: CartItem) => (product.price * product.quantity).toFixed(2),
+    []
+  );
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -79,7 +87,7 @@ export default function Page() {
                   </span>
                   <div className="flex items-center gap-2">
                     <p className="text-primary font-bold">
-                      ${(product.price * product.quantity).toFixed(2)}
+                      ${getTotalProductPrice(product)}
                     </p>
                     <Button
                       variant="ghost"
