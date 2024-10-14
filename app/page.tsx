@@ -44,6 +44,8 @@ export default function Page() {
           key={product.id}
           {...product}
           isAddedToCart={cart.some((p) => p.id === product.id)}
+          // Review
+          // Lebih baik kalau pakai useCallback dengan React.memo pada component Card, karena bisa menghemat rerender
           onAddToCart={(data) => setCart([...cart, data])}
         />
       ))}
